@@ -207,30 +207,39 @@ justify-content: center;
 transition: transform 0.4s ease;
 }
 
-.compass-arrow {
+.css-arrow {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 0;
+}
+
+.css-arrow-head {
 width: 0;
 height: 0;
-position: relative;
-display: flex;
-align-items: center;
-justify-content: center;
+border-left: 28px solid transparent;
+border-right: 28px solid transparent;
+border-bottom: 60px solid #a8e6ff;
+filter: drop-shadow(0 0 10px #a8e6ff88);
+transition: border-bottom-color 0.5s, filter 0.5s;
 }
 
-.arrow-svg {
-width: 80px;
-height: 140px;
-filter: drop-shadow(0 0 12px var(–state-glow));
-transition: filter 0.8s;
+.css-arrow-shaft {
+width: 14px;
+height: 30px;
+background: #a8e6ff;
+opacity: 0.9;
+transition: background 0.5s;
 }
 
-.arrow-svg .arrow-head {
-fill: var(–state-accent);
-transition: fill 0.8s;
-}
-.arrow-svg .arrow-tail {
-fill: var(–state-accent);
-opacity: 0.3;
-transition: fill 0.8s;
+.css-arrow-tail {
+width: 0;
+height: 0;
+border-left: 18px solid transparent;
+border-right: 18px solid transparent;
+border-top: 28px solid #a8e6ff;
+opacity: 0.4;
+transition: border-top-color 0.5s;
 }
 
 /* Cardinal marks */
@@ -528,11 +537,10 @@ display: none;
   <span class="cardinal e">E</span>
   <span class="cardinal w">W</span>
   <div class="compass-arrow-wrap" id="arrow-wrap">
-    <div class="compass-arrow">
-      <svg class="arrow-svg" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <polygon class="arrow-tail" points="40,140 20,80 60,80"/>
-        <polygon class="arrow-head" points="40,0 10,80 70,80"/>
-      </svg>
+    <div class="css-arrow" id="css-arrow">
+      <div class="css-arrow-head" id="arrow-head"></div>
+      <div class="css-arrow-shaft" id="arrow-shaft"></div>
+      <div class="css-arrow-tail" id="arrow-tail-el"></div>
     </div>
   </div>
 </div>
@@ -771,9 +779,13 @@ function updateHeat(ft) {
   root.style.setProperty('--state-accent', s.accent);
   root.style.setProperty('--state-glow',   s.glow);
 
-  // Arrow SVG colours — set attribute directly for reliability
-  document.querySelectorAll('.arrow-head').forEach(el => { el.style.fill = s.accent; el.setAttribute('fill', s.accent); });
-  document.querySelectorAll('.arrow-tail').forEach(el => { el.style.fill = s.accent; el.setAttribute('fill', s.accent); });
+  // Arrow CSS colours
+  const head = document.getElementById('arrow-head');
+  const shaft = document.getElementById('arrow-shaft');
+  const tailEl = document.getElementById('arrow-tail-el');
+  if (head)  { head.style.borderBottomColor = s.accent; head.style.filter = `drop-shadow(0 0 10px ${s.glow})`; }
+  if (shaft) { shaft.style.background = s.accent; }
+  if (tailEl){ tailEl.style.borderTopColor = s.accent; }
 
   // Logo accent
   document.querySelector('.logo em').style.color = s.accent;

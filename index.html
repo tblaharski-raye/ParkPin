@@ -189,12 +189,12 @@ transition: border-color 0.8s, box-shadow 0.8s;
 }
 .compass-ring.outer {
 border-color: var(–state-accent);
-opacity: 0.2;
+opacity: 0.6;
 box-shadow: 0 0 40px var(–state-glow);
 }
 .compass-ring.inner {
 inset: 20px;
-opacity: 0.15;
+opacity: 0.3;
 }
 
 .compass-arrow-wrap {
@@ -236,9 +236,9 @@ transition: fill 0.8s;
 /* Cardinal marks */
 .cardinal {
 position: absolute;
-font-size: 10px;
+font-size: 11px;
 letter-spacing: 1px;
-color: var(–muted);
+color: #aab0c0;
 font-family: ‘DM Mono’, monospace;
 }
 .cardinal.n { top: 6px; left: 50%; transform: translateX(-50%); }
@@ -267,13 +267,13 @@ transition: color 0.8s;
 font-size: 11px;
 letter-spacing: 3px;
 text-transform: uppercase;
-color: var(–muted);
+color: #aab0c0;
 }
 
 /* Parked time */
 .parked-since {
 font-size: 11px;
-color: var(–muted);
+color: #aab0c0;
 text-align: center;
 letter-spacing: 0.5px;
 }
@@ -347,7 +347,7 @@ to   { background: #0e0000; }
 
 .fire-emoji {
 display: none;
-font-size: 28px;
+font-size: 80px;
 animation: bounce 0.4s ease-in-out infinite alternate;
 position: absolute;
 }
@@ -355,11 +355,11 @@ body.on-fire .fire-emoji { display: block; }
 
 @keyframes bounce {
 from { transform: translateY(0) scale(1); }
-to   { transform: translateY(-8px) scale(1.1); }
+to   { transform: translateY(-10px) scale(1.15); }
 }
 
-.fire-emoji.left  { left: 10px; bottom: 120px; animation-delay: 0.1s; }
-.fire-emoji.right { right: 10px; bottom: 120px; animation-delay: 0.25s; }
+.fire-emoji.left  { left: 4px; bottom: 140px; animation-delay: 0.1s; }
+.fire-emoji.right { right: 4px; bottom: 140px; animation-delay: 0.25s; }
 
 /* Pulse ring for on-fire */
 .pulse-ring {
@@ -761,16 +761,19 @@ function updateHeat(ft) {
   currentState = state;
 
   const s = STATES[state];
-  document.getElementById('heat-label').textContent = s.label;
+  const heatLabel = document.getElementById('heat-label');
+  heatLabel.textContent = s.label;
+  heatLabel.style.color = s.accent;
+  heatLabel.style.textShadow = `0 0 30px ${s.glow}`;
 
   // CSS variable swap
   const root = document.documentElement;
   root.style.setProperty('--state-accent', s.accent);
   root.style.setProperty('--state-glow',   s.glow);
 
-  // Arrow SVG colours
-  document.querySelectorAll('.arrow-head').forEach(el => el.style.fill = s.accent);
-  document.querySelectorAll('.arrow-tail').forEach(el => el.style.fill = s.accent);
+  // Arrow SVG colours — set attribute directly for reliability
+  document.querySelectorAll('.arrow-head').forEach(el => { el.style.fill = s.accent; el.setAttribute('fill', s.accent); });
+  document.querySelectorAll('.arrow-tail').forEach(el => { el.style.fill = s.accent; el.setAttribute('fill', s.accent); });
 
   // Logo accent
   document.querySelector('.logo em').style.color = s.accent;

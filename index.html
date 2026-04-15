@@ -20,20 +20,20 @@
 
 ```
 --cold-bg: #0e1a2e;
---cold-accent: #4ab3f4;
---cold-glow: #4ab3f433;
+--cold-accent: #a8e6ff;
+--cold-glow: #a8e6ff44;
 
 --warm-bg: #1e1600;
---warm-accent: #f0c040;
---warm-glow: #f0c04033;
+--warm-accent: #ffe566;
+--warm-glow: #ffe56644;
 
 --hot-bg: #1e0800;
---hot-accent: #f06030;
---hot-glow: #f0603033;
+--hot-accent: #ff8c42;
+--hot-glow: #ff8c4244;
 
 --fire-bg: #1e0000;
---fire-accent: #ff2020;
---fire-glow: #ff202055;
+--fire-accent: #ffffff;
+--fire-glow: #ffffff33;
 
 --state-bg: var(--cold-bg);
 --state-accent: var(--cold-accent);
@@ -260,7 +260,7 @@ font-family: ‘Bebas Neue’, sans-serif;
 font-size: 64px;
 line-height: 1;
 letter-spacing: 2px;
-color: var(–text);
+color: var(–state-accent);
 transition: color 0.8s;
 }
 .distance-unit {
@@ -378,6 +378,61 @@ body.on-fire .pulse-ring { display: block; }
 100% { inset: -20px; opacity: 0; }
 }
 
+/* ── PARKED CONFIRMATION SCREEN ── */
+#screen-parked {
+gap: 16px;
+}
+
+.parked-confirm-icon {
+font-size: 72px;
+line-height: 1;
+animation: float 3s ease-in-out infinite;
+}
+
+.parked-confirm-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 40px;
+letter-spacing: 2px;
+text-align: center;
+}
+
+.parked-confirm-sub {
+font-size: 12px;
+color: var(–muted);
+text-align: center;
+line-height: 1.8;
+max-width: 260px;
+}
+
+.parked-confirm-meta {
+margin-top: 8px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 14px;
+padding: 14px 20px;
+font-size: 12px;
+color: var(–muted);
+text-align: center;
+line-height: 2;
+width: 100%;
+max-width: 280px;
+}
+.parked-confirm-meta strong {
+color: var(–text);
+font-weight: 500;
+}
+
+.btn-find {
+background: var(–cold-accent);
+color: #060810;
+font-size: 16px;
+font-weight: 700;
+letter-spacing: 1px;
+padding: 18px;
+border-radius: var(–radius);
+width: 100%;
+}
+
 /* ── Permission screen ── */
 #screen-permission {
 gap: 20px;
@@ -449,6 +504,15 @@ display: none;
     <div class="perm-sub">ParkPin needs access to your location and compass to guide you back to your car.</div>
   </div>
 
+  <!-- SCREEN: Parked confirmation -->
+
+  <div class="screen" id="screen-parked">
+    <div class="parked-confirm-icon">✅</div>
+    <div class="parked-confirm-title">You're parked!</div>
+    <div class="parked-confirm-sub">Your spot has been saved. Come back here when you're ready to find your car.</div>
+    <div class="parked-confirm-meta" id="confirm-meta"></div>
+  </div>
+
   <!-- SCREEN: Find your car -->
 
   <div class="screen" id="screen-find">
@@ -495,6 +559,9 @@ display: none;
     <button class="btn btn-park" id="btn-park" onclick="handlePark()">
       📍 &nbsp;Park Here
     </button>
+    <button class="btn btn-find" id="btn-find" onclick="handleFind()" style="display:none">
+      🔍 &nbsp;Find My Car
+    </button>
     <button class="btn btn-maps" id="btn-maps" onclick="openMaps()" style="display:none">
       🗺 &nbsp;Open in Maps
     </button>
@@ -521,7 +588,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     parkedSpot = JSON.parse(saved);
-    startTracking();
+    showParkedScreen();
   }
 });
 
@@ -541,7 +608,7 @@ function handlePark() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(parkedSpot));
       btn.disabled = false;
       btn.innerHTML = '📍 &nbsp;Park Here';
-      startTracking();
+      showParkedScreen();
     },
     err => {
       btn.disabled = false;
@@ -552,12 +619,35 @@ function handlePark() {
   );
 }
 
+// ── Show parked confirmation ───────────────────────────────────
+function showParkedScreen() {
+  showScreen('parked');
+  document.getElementById('btn-park').style.display  = 'none';
+  document.getElementById('btn-find').style.display  = 'flex';
+  document.getElementById('btn-maps').style.display  = 'flex';
+  document.getElementById('btn-clear').style.display = 'flex';
+
+  // Populate meta card
+  const d = new Date(parkedSpot.timestamp);
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateStr = d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+  const coordStr = `${parkedSpot.lat.toFixed(5)}, ${parkedSpot.lng.toFixed(5)}`;
+  document.getElementById('confirm-meta').innerHTML =
+    `<strong>Saved at</strong> ${timeStr}<br>${dateStr}<br><span style="font-size:10px;letter-spacing:0.5px">${coordStr}</span>`;
+}
+
+// ── Find my car — triggers compass + GPS ──────────────────────
+function handleFind() {
+  startTracking();
+}
+
 // ── Start live tracking ────────────────────────────────────────
 function startTracking() {
   showScreen('find');
-  document.getElementById('btn-park').style.display    = 'none';
-  document.getElementById('btn-maps').style.display    = 'flex';
-  document.getElementById('btn-clear').style.display   = 'flex';
+  document.getElementById('btn-park').style.display  = 'none';
+  document.getElementById('btn-find').style.display  = 'none';
+  document.getElementById('btn-maps').style.display  = 'flex';
+  document.getElementById('btn-clear').style.display = 'flex';
 
   updateParkedSince();
   setInterval(updateParkedSince, 30000);
@@ -652,10 +742,10 @@ function updateDistance(ft) {
 
 // ── Heat state ────────────────────────────────────────────────
 const STATES = {
-  cold:  { label: '❄️  COLD',    bg: '#0e1a2e', accent: '#4ab3f4', glow: '#4ab3f433' },
-  warm:  { label: '☀️  WARM',    bg: '#1e1600', accent: '#f0c040', glow: '#f0c04033' },
-  hot:   { label: '🔥  HOT',     bg: '#1e0800', accent: '#f06030', glow: '#f0603033' },
-  fire:  { label: '🔥  ON FIRE', bg: '#1e0000', accent: '#ff2020', glow: '#ff202055' },
+  cold:  { label: '❄️  COLD',    bg: '#0e1a2e', accent: '#a8e6ff', glow: '#a8e6ff44' },
+  warm:  { label: '☀️  WARM',    bg: '#1e1600', accent: '#ffe566', glow: '#ffe56644' },
+  hot:   { label: '🔥  HOT',     bg: '#1e0800', accent: '#ff8c42', glow: '#ff8c4244' },
+  fire:  { label: '🔥  ON FIRE', bg: '#1e0000', accent: '#ffffff', glow: '#ffffff33' },
 };
 
 let currentState = '';
@@ -684,6 +774,9 @@ function updateHeat(ft) {
 
   // Logo accent
   document.querySelector('.logo em').style.color = s.accent;
+
+  // Distance value
+  document.getElementById('dist-value').style.color = s.accent;
 
   // Background
   document.getElementById('app').style.background = s.bg;
@@ -742,6 +835,7 @@ function clearSpot() {
   document.getElementById('app').style.background = '';
   document.documentElement.style.setProperty('--state-accent', 'var(--cold-accent)');
   document.getElementById('btn-park').style.display  = 'flex';
+  document.getElementById('btn-find').style.display  = 'none';
   document.getElementById('btn-maps').style.display  = 'none';
   document.getElementById('btn-clear').style.display = 'none';
   document.getElementById('gps-dot').classList.remove('on');

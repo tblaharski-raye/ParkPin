@@ -750,20 +750,24 @@ function updateDistance(ft) {
 
 // ── Heat state ────────────────────────────────────────────────
 const STATES = {
-  cold:  { label: '❄️  COLD',    bg: '#0e1a2e', accent: '#a8e6ff', glow: '#a8e6ff44' },
-  warm:  { label: '☀️  WARM',    bg: '#1e1600', accent: '#ffe566', glow: '#ffe56644' },
-  hot:   { label: '🔥  HOT',     bg: '#1e0800', accent: '#ff8c42', glow: '#ff8c4244' },
-  fire:  { label: '🔥  ON FIRE', bg: '#1e0000', accent: '#ffffff', glow: '#ffffff33' },
+  cold:    { label: '❄️  COLD',       bg: '#0e1a2e', accent: '#a8e6ff', glow: '#a8e6ff44' },
+  heating: { label: '🌡️  HEATING UP', bg: '#1a1a0e', accent: '#ffe566', glow: '#ffe56644' },
+  warm:    { label: '☀️  WARM',       bg: '#1e1600', accent: '#ffd000', glow: '#ffd00044' },
+  hot:     { label: '🔥  HOT',        bg: '#1e0800', accent: '#ff8c42', glow: '#ff8c4244' },
+  onfire:  { label: '🔥🔥 ON FIRE',   bg: '#1e0000', accent: '#ff4400', glow: '#ff440044' },
+  blazing: { label: '🔥🔥🔥 BLAZING', bg: '#0e0000', accent: '#ffffff', glow: '#ffffff33' },
 };
 
 let currentState = '';
 
 function updateHeat(ft) {
   let state;
-  if      (ft <= 10)  state = 'fire';
-  else if (ft <= 100) state = 'hot';
-  else if (ft <= 500) state = 'warm';
-  else                state = 'cold';
+  if      (ft < 10)  state = 'blazing';
+  else if (ft < 25)  state = 'onfire';
+  else if (ft < 200) state = 'hot';
+  else if (ft < 300) state = 'warm';
+  else if (ft < 500) state = 'heating';
+  else               state = 'cold';
 
   if (state === currentState) return;
   currentState = state;
@@ -797,8 +801,8 @@ function updateHeat(ft) {
   document.getElementById('app').style.background = s.bg;
 
   // On-fire body class
-  if (state === 'fire') document.body.classList.add('on-fire');
-  else                  document.body.classList.remove('on-fire');
+  if (state === 'onfire' || state === 'blazing') document.body.classList.add('on-fire');
+  else                                           document.body.classList.remove('on-fire');
 }
 
 // ── Arrow rotation ─────────────────────────────────────────────

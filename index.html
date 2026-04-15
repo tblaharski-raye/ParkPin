@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ParkPin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg: #0e0f13;
+–surface: #16181f;
+–border: #23262f;
+–text: #eef0f6;
+–muted: #5a5f70;
+–radius: 20px;
+
+```
+--cold-bg: #0e1a2e;
+--cold-accent: #4ab3f4;
+--cold-glow: #4ab3f433;
+
+--warm-bg: #1e1600;
+--warm-accent: #f0c040;
+--warm-glow: #f0c04033;
+
+--hot-bg: #1e0800;
+--hot-accent: #f06030;
+--hot-glow: #f0603033;
+
+--fire-bg: #1e0000;
+--fire-accent: #ff2020;
+--fire-glow: #ff202055;
+
+--state-bg: var(--cold-bg);
+--state-accent: var(--cold-accent);
+--state-glow: var(--cold-glow);
+```
+
+}
+
+html, body {
+height: 100%;
+background: var(–bg);
+color: var(–text);
+font-family: ‘DM Mono’, monospace;
+-webkit-font-smoothing: antialiased;
+overflow: hidden;
+}
+
+#app {
+height: 100dvh;
+display: flex;
+flex-direction: column;
+align-items: center;
+max-width: 430px;
+margin: 0 auto;
+padding: 0 24px;
+position: relative;
+transition: background 0.8s ease;
+}
+
+/* ── Header ── */
+header {
+width: 100%;
+padding: 24px 0 0;
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
+}
+
+.logo {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 28px;
+letter-spacing: 2px;
+color: var(–text);
+}
+.logo em {
+color: var(–state-accent);
+font-style: normal;
+transition: color 0.8s;
+}
+
+.gps-pill {
+font-size: 10px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(–muted);
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 5px 12px;
+border-radius: 100px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.gps-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+background: var(–muted);
+transition: background 0.4s, box-shadow 0.4s;
+}
+.gps-dot.on {
+background: #4ade80;
+box-shadow: 0 0 6px #4ade8088;
+}
+
+/* ── SCREENS ── */
+.screen {
+display: none;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+flex: 1;
+width: 100%;
+gap: 0;
+}
+.screen.active { display: flex; }
+
+/* ── PARK SCREEN ── */
+#screen-park {
+gap: 20px;
+}
+
+.park-icon {
+font-size: 72px;
+line-height: 1;
+margin-bottom: 8px;
+animation: float 3s ease-in-out infinite;
+}
+
+.park-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 36px;
+letter-spacing: 2px;
+text-align: center;
+color: var(–text);
+}
+
+.park-sub {
+font-size: 12px;
+color: var(–muted);
+text-align: center;
+line-height: 1.8;
+max-width: 260px;
+}
+
+/* ── FIND SCREEN ── */
+#screen-find {
+gap: 0;
+justify-content: space-between;
+padding: 12px 0 0;
+}
+
+/* Heat label */
+.heat-label {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 52px;
+letter-spacing: 4px;
+color: var(–state-accent);
+transition: color 0.8s, text-shadow 0.8s;
+text-shadow: 0 0 30px var(–state-glow);
+text-align: center;
+min-height: 64px;
+}
+
+/* Arrow compass */
+.compass-wrap {
+position: relative;
+width: 220px;
+height: 220px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+margin: 8px 0;
+}
+
+.compass-ring {
+position: absolute;
+inset: 0;
+border-radius: 50%;
+border: 1.5px solid var(–border);
+transition: border-color 0.8s, box-shadow 0.8s;
+}
+.compass-ring.outer {
+border-color: var(–state-accent);
+opacity: 0.2;
+box-shadow: 0 0 40px var(–state-glow);
+}
+.compass-ring.inner {
+inset: 20px;
+opacity: 0.15;
+}
+
+.compass-arrow-wrap {
+position: relative;
+width: 100%;
+height: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: transform 0.4s ease;
+}
+
+.compass-arrow {
+width: 0;
+height: 0;
+position: relative;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.arrow-svg {
+width: 80px;
+height: 140px;
+filter: drop-shadow(0 0 12px var(–state-glow));
+transition: filter 0.8s;
+}
+
+.arrow-svg .arrow-head {
+fill: var(–state-accent);
+transition: fill 0.8s;
+}
+.arrow-svg .arrow-tail {
+fill: var(–state-accent);
+opacity: 0.3;
+transition: fill 0.8s;
+}
+
+/* Cardinal marks */
+.cardinal {
+position: absolute;
+font-size: 10px;
+letter-spacing: 1px;
+color: var(–muted);
+font-family: ‘DM Mono’, monospace;
+}
+.cardinal.n { top: 6px; left: 50%; transform: translateX(-50%); }
+.cardinal.s { bottom: 6px; left: 50%; transform: translateX(-50%); }
+.cardinal.e { right: 8px; top: 50%; transform: translateY(-50%); }
+.cardinal.w { left: 8px; top: 50%; transform: translateY(-50%); }
+
+/* Distance display */
+.distance-wrap {
+text-align: center;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
+margin: 4px 0 8px;
+}
+.distance-value {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 64px;
+line-height: 1;
+letter-spacing: 2px;
+color: var(–text);
+transition: color 0.8s;
+}
+.distance-unit {
+font-size: 11px;
+letter-spacing: 3px;
+text-transform: uppercase;
+color: var(–muted);
+}
+
+/* Parked time */
+.parked-since {
+font-size: 11px;
+color: var(–muted);
+text-align: center;
+letter-spacing: 0.5px;
+}
+
+/* ── Bottom panel ── */
+#bottom-panel {
+width: 100%;
+padding: 12px 0 32px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+flex-shrink: 0;
+}
+
+.btn {
+border: none;
+border-radius: 14px;
+font-family: ‘DM Mono’, monospace;
+font-weight: 500;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+transition: opacity 0.15s, transform 0.1s, background 0.8s;
+-webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.96); opacity: 0.85; }
+.btn:disabled { opacity: 0.35; pointer-events: none; }
+
+.btn-park {
+background: var(–cold-accent);
+color: #060810;
+font-size: 16px;
+font-weight: 700;
+letter-spacing: 1px;
+padding: 18px;
+border-radius: var(–radius);
+width: 100%;
+}
+
+.btn-maps {
+background: var(–surface);
+color: var(–text);
+border: 1px solid var(–border);
+font-size: 13px;
+padding: 14px;
+width: 100%;
+border-radius: var(–radius);
+}
+
+.btn-clear {
+background: transparent;
+color: var(–muted);
+border: 1px solid var(–border);
+font-size: 12px;
+padding: 12px;
+width: 100%;
+border-radius: var(–radius);
+}
+.btn-clear:hover { color: #f05a5a; border-color: #f05a5a44; }
+
+/* ── FIRE MODE ── */
+body.on-fire #app {
+animation: fireFlicker 0.5s ease-in-out infinite alternate;
+}
+@keyframes fireFlicker {
+from { background: #1e0000; }
+to   { background: #0e0000; }
+}
+
+.fire-emoji {
+display: none;
+font-size: 28px;
+animation: bounce 0.4s ease-in-out infinite alternate;
+position: absolute;
+}
+body.on-fire .fire-emoji { display: block; }
+
+@keyframes bounce {
+from { transform: translateY(0) scale(1); }
+to   { transform: translateY(-8px) scale(1.1); }
+}
+
+.fire-emoji.left  { left: 10px; bottom: 120px; animation-delay: 0.1s; }
+.fire-emoji.right { right: 10px; bottom: 120px; animation-delay: 0.25s; }
+
+/* Pulse ring for on-fire */
+.pulse-ring {
+position: absolute;
+inset: -10px;
+border-radius: 50%;
+border: 2px solid var(–fire-accent);
+opacity: 0;
+display: none;
+animation: pulseOut 1s ease-out infinite;
+}
+body.on-fire .pulse-ring { display: block; }
+
+@keyframes pulseOut {
+0%   { inset: 10px; opacity: 0.6; }
+100% { inset: -20px; opacity: 0; }
+}
+
+/* ── Permission screen ── */
+#screen-permission {
+gap: 20px;
+text-align: center;
+}
+.perm-icon { font-size: 56px; }
+.perm-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 30px;
+letter-spacing: 2px;
+}
+.perm-sub {
+font-size: 12px;
+color: var(–muted);
+line-height: 1.8;
+max-width: 270px;
+}
+
+/* ── No compass notice ── */
+#no-compass {
+font-size: 11px;
+color: var(–muted);
+text-align: center;
+padding: 6px 16px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 100px;
+display: none;
+}
+
+@keyframes float {
+0%, 100% { transform: translateY(0); }
+50%       { transform: translateY(-10px); }
+}
+
+/* Transitions */
+.heat-label, .distance-value, .compass-ring.outer,
+.arrow-svg, #app { transition-duration: 0.8s; }
+</style>
+
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Header -->
+
+  <header>
+    <div class="logo">Park<em>Pin</em></div>
+    <div class="gps-pill">
+      <div class="gps-dot" id="gps-dot"></div>
+      <span id="gps-label">GPS</span>
+    </div>
+  </header>
+
+  <!-- SCREEN: Park your car -->
+
+  <div class="screen active" id="screen-park">
+    <div class="park-icon">🚗</div>
+    <div class="park-title">Where'd you park?</div>
+    <div class="park-sub">Tap the button when you step out of your car to drop a pin at your location.</div>
+  </div>
+
+  <!-- SCREEN: Permission needed -->
+
+  <div class="screen" id="screen-permission">
+    <div class="perm-icon">📍</div>
+    <div class="perm-title">Location needed</div>
+    <div class="perm-sub">ParkPin needs access to your location and compass to guide you back to your car.</div>
+  </div>
+
+  <!-- SCREEN: Find your car -->
+
+  <div class="screen" id="screen-find">
+    <div class="heat-label" id="heat-label">COLD</div>
+
+```
+<div class="compass-wrap">
+  <div class="compass-ring outer"></div>
+  <div class="compass-ring inner"></div>
+  <div class="pulse-ring"></div>
+  <span class="cardinal n">N</span>
+  <span class="cardinal s">S</span>
+  <span class="cardinal e">E</span>
+  <span class="cardinal w">W</span>
+  <div class="compass-arrow-wrap" id="arrow-wrap">
+    <div class="compass-arrow">
+      <svg class="arrow-svg" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon class="arrow-tail" points="40,140 20,80 60,80"/>
+        <polygon class="arrow-head" points="40,0 10,80 70,80"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div class="distance-wrap">
+  <div class="distance-value" id="dist-value">—</div>
+  <div class="distance-unit">feet away</div>
+</div>
+
+<div class="parked-since" id="parked-since"></div>
+<div id="no-compass">⚠ No compass — arrow shows heading based on movement</div>
+```
+
+  </div>
+
+  <!-- Fire emojis -->
+
+  <div class="fire-emoji left">🔥</div>
+  <div class="fire-emoji right">🔥</div>
+
+  <!-- Bottom panel -->
+
+  <div id="bottom-panel">
+    <button class="btn btn-park" id="btn-park" onclick="handlePark()">
+      📍 &nbsp;Park Here
+    </button>
+    <button class="btn btn-maps" id="btn-maps" onclick="openMaps()" style="display:none">
+      🗺 &nbsp;Open in Maps
+    </button>
+    <button class="btn btn-clear" id="btn-clear" onclick="clearSpot()" style="display:none">
+      ✕ &nbsp;Clear saved spot
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+const STORAGE_KEY = 'parkpin_spot';
+
+let parkedSpot   = null;   // { lat, lng, timestamp }
+let currentPos   = null;   // { lat, lng }
+let watchId      = null;
+let compassHead  = null;   // device heading (degrees)
+let hasCompass   = false;
+let arrowAngle   = 0;
+
+// ── Init ───────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    parkedSpot = JSON.parse(saved);
+    startTracking();
+  }
+});
+
+// ── Park ───────────────────────────────────────────────────────
+function handlePark() {
+  const btn = document.getElementById('btn-park');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ &nbsp;Getting location…';
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      parkedSpot = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parkedSpot));
+      btn.disabled = false;
+      btn.innerHTML = '📍 &nbsp;Park Here';
+      startTracking();
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = '📍 &nbsp;Park Here';
+      alert('Could not get your location. Please allow location access and try again.');
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// ── Start live tracking ────────────────────────────────────────
+function startTracking() {
+  showScreen('find');
+  document.getElementById('btn-park').style.display    = 'none';
+  document.getElementById('btn-maps').style.display    = 'flex';
+  document.getElementById('btn-clear').style.display   = 'flex';
+
+  updateParkedSince();
+  setInterval(updateParkedSince, 30000);
+
+  // GPS watch
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      document.getElementById('gps-dot').classList.add('on');
+      document.getElementById('gps-label').textContent = 'LIVE';
+      update();
+    },
+    err => {
+      document.getElementById('gps-dot').classList.remove('on');
+    },
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+  );
+
+  // Compass
+  requestCompass();
+}
+
+// ── Request compass permission (iOS requires user gesture) ─────
+function requestCompass() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') listenCompass();
+        else showNoCompass();
+      })
+      .catch(() => showNoCompass());
+  } else if (window.DeviceOrientationEvent) {
+    listenCompass();
+  } else {
+    showNoCompass();
+  }
+}
+
+function listenCompass() {
+  window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+  window.addEventListener('deviceorientation', handleOrientation, true);
+}
+
+function handleOrientation(e) {
+  let heading = null;
+  if (e.absolute && e.alpha !== null) {
+    heading = 360 - e.alpha;
+  } else if (e.webkitCompassHeading !== undefined) {
+    heading = e.webkitCompassHeading;
+  } else if (e.alpha !== null) {
+    heading = 360 - e.alpha;
+  }
+  if (heading !== null) {
+    hasCompass = true;
+    compassHead = heading;
+    update();
+  }
+}
+
+function showNoCompass() {
+  document.getElementById('no-compass').style.display = 'block';
+}
+
+// ── Main update loop ───────────────────────────────────────────
+function update() {
+  if (!parkedSpot || !currentPos) return;
+
+  const dist = getDistanceFt(currentPos.lat, currentPos.lng, parkedSpot.lat, parkedSpot.lng);
+  const bear = getBearing(currentPos.lat, currentPos.lng, parkedSpot.lat, parkedSpot.lng);
+
+  updateDistance(dist);
+  updateHeat(dist);
+  updateArrow(bear);
+}
+
+// ── Distance display ───────────────────────────────────────────
+function updateDistance(ft) {
+  const el = document.getElementById('dist-value');
+  if (ft < 10) {
+    el.textContent = '< 10';
+  } else if (ft >= 1000) {
+    el.textContent = (ft / 5280).toFixed(1) + ' mi';
+    document.querySelector('.distance-unit').textContent = 'away';
+  } else {
+    el.textContent = Math.round(ft);
+    document.querySelector('.distance-unit').textContent = 'feet away';
+  }
+}
+
+// ── Heat state ────────────────────────────────────────────────
+const STATES = {
+  cold:  { label: '❄️  COLD',    bg: '#0e1a2e', accent: '#4ab3f4', glow: '#4ab3f433' },
+  warm:  { label: '☀️  WARM',    bg: '#1e1600', accent: '#f0c040', glow: '#f0c04033' },
+  hot:   { label: '🔥  HOT',     bg: '#1e0800', accent: '#f06030', glow: '#f0603033' },
+  fire:  { label: '🔥  ON FIRE', bg: '#1e0000', accent: '#ff2020', glow: '#ff202055' },
+};
+
+let currentState = '';
+
+function updateHeat(ft) {
+  let state;
+  if      (ft <= 10)  state = 'fire';
+  else if (ft <= 100) state = 'hot';
+  else if (ft <= 500) state = 'warm';
+  else                state = 'cold';
+
+  if (state === currentState) return;
+  currentState = state;
+
+  const s = STATES[state];
+  document.getElementById('heat-label').textContent = s.label;
+
+  // CSS variable swap
+  const root = document.documentElement;
+  root.style.setProperty('--state-accent', s.accent);
+  root.style.setProperty('--state-glow',   s.glow);
+
+  // Arrow SVG colours
+  document.querySelectorAll('.arrow-head').forEach(el => el.style.fill = s.accent);
+  document.querySelectorAll('.arrow-tail').forEach(el => el.style.fill = s.accent);
+
+  // Logo accent
+  document.querySelector('.logo em').style.color = s.accent;
+
+  // Background
+  document.getElementById('app').style.background = s.bg;
+
+  // On-fire body class
+  if (state === 'fire') document.body.classList.add('on-fire');
+  else                  document.body.classList.remove('on-fire');
+}
+
+// ── Arrow rotation ─────────────────────────────────────────────
+function updateArrow(bearingToCar) {
+  let angle;
+  if (hasCompass && compassHead !== null) {
+    // Rotate arrow relative to device heading
+    angle = bearingToCar - compassHead;
+  } else {
+    // No compass — just point north (show raw bearing)
+    angle = bearingToCar;
+  }
+  // Smooth to avoid jump through 360/0
+  document.getElementById('arrow-wrap').style.transform = `rotate(${angle}deg)`;
+}
+
+// ── Parked since ───────────────────────────────────────────────
+function updateParkedSince() {
+  if (!parkedSpot) return;
+  const mins = Math.floor((Date.now() - parkedSpot.timestamp) / 60000);
+  let label;
+  if      (mins < 1)    label = 'Parked just now';
+  else if (mins < 60)   label = `Parked ${mins}m ago`;
+  else if (mins < 1440) label = `Parked ${Math.floor(mins/60)}h ${mins%60}m ago`;
+  else                  label = `Parked ${Math.floor(mins/1440)}d ago`;
+  document.getElementById('parked-since').textContent = label;
+}
+
+// ── Open Maps ─────────────────────────────────────────────────
+function openMaps() {
+  if (!parkedSpot) return;
+  const { lat, lng } = parkedSpot;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const url = isIOS
+    ? `maps://maps.apple.com/?daddr=${lat},${lng}&dirflg=w`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
+  window.open(url, '_blank');
+}
+
+// ── Clear spot ────────────────────────────────────────────────
+function clearSpot() {
+  if (!confirm('Clear your saved parking spot?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  parkedSpot = null;
+  currentPos = null;
+  if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  document.body.classList.remove('on-fire');
+  currentState = '';
+  document.getElementById('app').style.background = '';
+  document.documentElement.style.setProperty('--state-accent', 'var(--cold-accent)');
+  document.getElementById('btn-park').style.display  = 'flex';
+  document.getElementById('btn-maps').style.display  = 'none';
+  document.getElementById('btn-clear').style.display = 'none';
+  document.getElementById('gps-dot').classList.remove('on');
+  document.getElementById('gps-label').textContent = 'GPS';
+  showScreen('park');
+}
+
+// ── Screen switcher ───────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+// ── Geo helpers ───────────────────────────────────────────────
+function getDistanceFt(lat1, lon1, lat2, lon2) {
+  const R = 20902231; // Earth radius in feet
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function getBearing(lat1, lon1, lat2, lon2) {
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
+</script>
+
+</body>
+</html>
